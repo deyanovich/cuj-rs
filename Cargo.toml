@@ -1,0 +1,49 @@
+[package]
+name = "cuj"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "cuj protocol 0.5 CLI — note-jotting on Jot Syntax + metatheca"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://gitlab.com/cujot/cuj-rs"
+homepage = "https://cuj.net"
+keywords = ["jot", "notes", "journal", "cli", "pkm"]
+categories = ["command-line-utilities", "text-processing"]
+exclude = [".gitignore", ".claude", ".cito-promote-exclude"]
+
+[[bin]]
+name = "cuj"
+path = "src/main.rs"
+
+[lib]
+name = "cuj"
+path = "src/lib.rs"
+
+[dependencies]
+jots = "0.1.1"
+metatheca = "0.1.4"
+taxopsis = "0.1.1"
+logopsis = "0.1.0"
+semopsis = "0.1.0"
+zetetes = "0.1.0"
+quarb = "0.4.1"
+quarb-serve = "0.4.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+regex = "1"
+infer = "0.16"
+quick-xml = "0.39"
+serde_yaml_ng = "0.10"
+base64 = "0.22"
+md-5 = "0.10"
+sha2 = "0.10"
+tempfile = "3"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3"
