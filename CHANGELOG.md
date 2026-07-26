@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0 — 2026-07-25
+
+### Changed
+
+- Track Quarb 0.10 (from 0.4): `cuj q` and `cuj quarb-serve`
+  run against the current engine and serve protocol. The
+  `AstAdapter` implementation needed no changes — the trait
+  additions across 0.5–0.10 are all defaulted and the
+  implemented method signatures are stable; the query results
+  over a vault arbor are unchanged.
+- Substrate dependencies are now consumed from crates.io
+  (published jots, metatheca, taxopsis/logopsis/semopsis/
+  zetetes, quarb, quarb-serve) rather than sibling path
+  checkouts, so a cuj-rs checkout builds standalone.
+
 ## 0.1.0 — 2026-07-21
 
 ### Quarb binding
