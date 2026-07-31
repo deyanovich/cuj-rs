@@ -1,0 +1,128 @@
+name: "Publish cuj-py to PyPI (dist: cuj)"
+
+# Triggers on `py/v*` tag pushes to this GitHub mirror. Builds the full
+# wheel matrix (5 platforms + sdist) and publishes atomically to PyPI
+# using OIDC trusted publishing — no API token secret needed on the
+# GitHub side.
+#
+# One-time setup required before the first publish:
+#
+# 1. On PyPI (https://pypi.org/manage/project/cuj/settings/publishing/):
+#    Add a Trusted Publisher with:
+#      Owner:        deyanovich
+#      Repository:   cuj-rs
+#      Workflow:     publish-pypi.yml
+#      Environment:  pypi
+#
+# 2. On GitHub (Settings → Environments on this repo):
+#    Create an environment named `pypi`. Optional protection rules
+#    (e.g. require approval for deployment) can be added there.
+#
+# Adapted from the working obcrypt-rs publish workflow — patterns and
+# matrix targets that already proved out in production for obcrypt-py.
+
+on:
+  push:
+    tags:
+      - "py/v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-wheels:
+    name: Build wheels (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: >-
+            --release
+            --strip
+            --manifest-path cuj-py/Cargo.toml
+            --out dist
+          manylinux: auto
+          python-version: "3.12"
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist/*.whl
+
+  build-sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: >-
+            --manifest-path cuj-py/Cargo.toml
+            --out dist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect dist files
+        run: |
+          mkdir dist
+          find artifacts -type f \( -name "*.whl" -o -name "*.tar.gz" \) -exec cp {} dist/ \;
+          ls -la dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

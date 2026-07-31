@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased (0.3.1)
+
+### Added
+
+- **cuj-py**: Python bindings (workspace member; PyPI dist
+  `cuj`, versioned to mirror the cuj release it binds, built
+  with maturin/PyO3, abi3 ≥3.8). First release exposes the
+  vault's query surface — `cuj.q(expr, config=, profile=, at=,
+  now=)`, the library twin of `cuj q`: node results as cuj
+  display strings, value results as typed Python values
+  (datetimes, timedeltas, dicts for records). Ships via the
+  `py/v*`-tag GitHub workflow (OIDC trusted publishing).
+- `ClientConfig::load_from(path)`: load a config from an
+  explicit path, bypassing `CUJ_CONFIG` and the default
+  location — the door for library consumers.
+
 ## 0.3.0 — 2026-07-31
 
 ### Added

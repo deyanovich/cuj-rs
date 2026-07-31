@@ -1,0 +1,24 @@
+[package]
+name = "cuj-py"
+# The PyPI release mirrors the cuj release it binds, same number
+# (the quarb-py convention): `pip install cuj` 0.3.0 is cuj 0.3.0.
+version = "0.3.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://gitlab.com/cujot/cuj-rs"
+homepage = "https://cuj.net"
+description = "Python bindings for cuj, the plain-text PKM engine."
+readme = "README.md"
+# Not a crates.io publication target — this crate ships to PyPI via
+# maturin (see pyproject.toml), not to crates.io.
+publish = false
+
+[lib]
+name = "_cuj"
+crate-type = ["cdylib"]
+
+[dependencies]
+cuj = { path = "..", version = "0.3.0" }
+quarb = "0.16"
+pyo3 = { version = "0.28", features = ["extension-module", "abi3-py38"] }

@@ -48,10 +48,20 @@ impl Default for ClientConfig {
 
 impl ClientConfig {
     pub fn load() -> Result<Self> {
+        let path = match std::env::var_os("CUJ_CONFIG") {
+            Some(p) => PathBuf::from(p),
+            None => ClientConfig::default().path,
+        };
+        Self::load_from(path)
+    }
+
+    /// Load from an explicit config path, bypassing `CUJ_CONFIG`
+    /// and the default location — the door for library consumers
+    /// (the TUI, the Python bindings) that address a vault
+    /// directly.
+    pub fn load_from(path: impl Into<PathBuf>) -> Result<Self> {
         let mut cfg = ClientConfig::default();
-        if let Some(p) = std::env::var_os("CUJ_CONFIG") {
-            cfg.path = PathBuf::from(p);
-        }
+        cfg.path = path.into();
         let text = match std::fs::read_to_string(&cfg.path) {
             Ok(t) => t,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(cfg),
