@@ -572,6 +572,13 @@ fn run_dir(
                 }
                 if !opts.json {
                     println!("Imported: {:?} -> --{profile_name}--{id}", imported.title);
+                    if !imported.dropped.is_empty() {
+                        println!(
+                            "Dropped in {:?}: {}",
+                            imported.title,
+                            imported.dropped.join(", ")
+                        );
+                    }
                 }
                 report.imported.push(imported);
             }

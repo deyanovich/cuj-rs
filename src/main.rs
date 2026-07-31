@@ -64,7 +64,7 @@ usage:
   cuj fsck                             integrity checks
 
 global flags: --profile <name|all>, --json, --at <stateref>,
-              --force, --stale, -k <n>
+              --now <instant> (q), --force, --stale, -k <n>
 ";
 
 fn main() -> ExitCode {
@@ -133,6 +133,12 @@ fn split_flags(argv: Vec<String>) -> Result<Cli> {
                 opts.at = Some(
                     it.next()
                         .ok_or_else(|| Error::Usage("--at needs a stateref".into()))?,
+                )
+            }
+            "--now" => {
+                opts.now = Some(
+                    it.next()
+                        .ok_or_else(|| Error::Usage("--now needs an ISO instant".into()))?,
                 )
             }
             "-k" => {

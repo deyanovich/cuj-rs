@@ -179,13 +179,102 @@ fn truncate72(line: &str) -> String {
     s
 }
 
-/// First non-empty content line, truncated for display.
+/// The display-facing text of a jot's content: verbatim for
+/// plain-text exts, a tag-stripped shadow for `html` (so an
+/// imported Evernote note summarizes as its heading, not as
+/// `<html><head>…`). Deliberately not a parser: tags drop,
+/// block-level closes and `<br>` become newlines, the five
+/// basic entities decode — enough for one display line.
+fn display_text(reads: &Reads<'_>, entry: Uuid, text: &str) -> String {
+    if reads.idents.get(&entry).is_none_or(|i| i.ext != "html") {
+        return text.to_string();
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(open) = rest.find('<') {
+        out.push_str(&rest[..open]);
+        let tail = &rest[open + 1..];
+        let Some(close) = tail.find('>') else {
+            rest = "";
+            break;
+        };
+        let tag = tail[..close].trim().to_ascii_lowercase();
+        let name = tag
+            .trim_start_matches('/')
+            .split(|c: char| !c.is_ascii_alphanumeric())
+            .next()
+            .unwrap_or("");
+        let block_close = tag.starts_with('/')
+            && matches!(
+                name,
+                "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "li"
+                    | "tr" | "head" | "title" | "blockquote" | "pre"
+            );
+        if block_close || name == "br" {
+            out.push('\n');
+        }
+        rest = &tail[close + 1..];
+    }
+    out.push_str(rest);
+    for (ent, ch) in [
+        ("&lt;", "<"),
+        ("&gt;", ">"),
+        ("&quot;", "\""),
+        ("&#39;", "'"),
+        ("&amp;", "&"),
+    ] {
+        if out.contains(ent) {
+            out = out.replace(ent, ch);
+        }
+    }
+    out
+}
+
+/// The jot-syntax display shadow of one content line: annotation
+/// tokens elide (`..tag`, `::cat`, `--ref`, `//file`, `;;res`,
+/// `==url`, `!!name`), and a `??` todo construct runs to the end
+/// of the line. What remains is the prose. Exact by the grammar's
+/// own rules — any whitespace-delimited token opening with a
+/// doubled sigil *is* an annotation, whatever the host format.
+fn line_shadow(line: &str) -> String {
+    let mut out: Vec<&str> = Vec::new();
+    for tok in line.split_whitespace() {
+        if tok.starts_with("??") {
+            break;
+        }
+        let sigiled = ["..", "::", "--", "//", ";;", "==", "!!"]
+            .iter()
+            .any(|s| tok.starts_with(s) && tok.len() > s.len());
+        if !sigiled {
+            out.push(tok);
+        }
+    }
+    out.join(" ")
+}
+
+/// First content line that still says something once annotations
+/// elide, truncated for display. HTML content is read through its
+/// tag-stripped shadow; a leading Markdown frontmatter block is
+/// skipped. Falls back to the raw first non-empty line for jots
+/// that are pure annotation (a bare todo capture).
 pub fn summary_line(reads: &Reads<'_>, entry: Uuid) -> String {
     let Ok(bytes) = reads.bytes(entry) else {
         return String::new();
     };
-    let text = String::from_utf8_lossy(&bytes);
-    truncate72(text.lines().find(|l| !l.trim().is_empty()).unwrap_or(""))
+    let text = display_text(reads, entry, &String::from_utf8_lossy(&bytes));
+    let mut lines: Vec<&str> = text.lines().collect();
+    if lines.first().map(|l| l.trim()) == Some("---") {
+        if let Some(close) = lines.iter().skip(1).position(|l| l.trim() == "---") {
+            lines.drain(..close + 2);
+        }
+    }
+    for line in &lines {
+        let shadow = line_shadow(line);
+        if !shadow.trim().is_empty() {
+            return truncate72(&shadow);
+        }
+    }
+    truncate72(lines.iter().find(|l| !l.trim().is_empty()).unwrap_or(&""))
 }
 
 /// A display-time snippet from the hit blob (SPEC §10.10): the first
@@ -195,7 +284,7 @@ fn snippet_line(reads: &Reads<'_>, hit: Uuid, terms: &[String]) -> String {
     let Ok(bytes) = reads.bytes(hit) else {
         return String::new();
     };
-    let text = String::from_utf8_lossy(&bytes);
+    let text = display_text(reads, hit, &String::from_utf8_lossy(&bytes));
     let matched = text.lines().filter(|l| !l.trim().is_empty()).find(|l| {
         let ll = l.to_lowercase();
         terms.iter().any(|t| ll.contains(t.as_str()))
@@ -2107,4 +2196,27 @@ pub fn fsck(app: &App) -> Result<FsckOutcome> {
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::line_shadow;
+
+    #[test]
+    fn shadow_elides_annotations() {
+        assert_eq!(
+            line_shadow("ration draft: 420 g per man-day ::supplies::food ..draft --3::cites"),
+            "ration draft: 420 g per man-day"
+        );
+        assert_eq!(line_shadow("the plan ::planning ..pinned"), "the plan");
+        assert_eq!(line_shadow("??charter@2026-05-30 confirm the berth"), "");
+        assert_eq!(line_shadow("prose before ??todo and after"), "prose before");
+        assert_eq!(line_shadow("see ///wiki/pemmican.md::cites now"), "see now");
+    }
+
+    #[test]
+    fn shadow_keeps_prose() {
+        assert_eq!(line_shadow("lone -- dash and a.b::c stays"), "lone -- dash and a.b::c stays");
+        assert_eq!(line_shadow("#reading/polar"), "#reading/polar");
+    }
 }

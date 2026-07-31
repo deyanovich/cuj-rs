@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.3.0 — 2026-07-31
+
+### Added
+
+- `--now <instant>`: pin the `now()` instant in `cuj q` for
+  reproducible temporal queries (mirrors `qua --now`). Unset,
+  `cuj q` now binds one startup clock read — previously the
+  invocation instant was left unbound and `now()` silently
+  matched nothing.
+
+### Fixed
+
+- `cuj import` now prints the per-note drop report (`Dropped in
+  "note.md": property rating, aliases (1)`) alongside the
+  unresolved-wikilink line; previously the drops were recorded
+  in the `--json` report but silent at the human surface.
+- `::summary` and search snippets on `.html` jots read through a
+  tag-stripped text shadow instead of echoing the raw
+  `<html><head>…` preamble — an imported Evernote note now
+  summarizes as its heading.
+
+### Changed
+
+- Track Quarb 0.16 (from 0.10): `cuj q` and `cuj quarb-serve`
+  run against the current engine and serve protocol. The
+  `AstAdapter` implementation again needed no changes; the
+  win is on the query side — `cuj q` now parses the 0.11–0.16
+  language surface, notably `::::` (the canonical
+  adapter-metadata spelling), the headless both-direction
+  crosslink `--label`, resolution spellings `-->` / `<--`,
+  fragment splices in predicate position, and the text-level
+  koine. Query results over a vault arbor are unchanged.
+
 ## 0.2.0 — 2026-07-25
 
 ### Changed

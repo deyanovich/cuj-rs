@@ -571,7 +571,26 @@ pub fn quarb_serve(app: &App, opts: &Opts) -> Result<()> {
 pub fn quarb_query(app: &App, opts: &Opts, expr: &str) -> Result<()> {
     let reads = app.reads(opts)?;
     let arbor = crate::arbor::VaultArbor::build(&reads);
-    let result = quarb::run(expr, &arbor).map_err(|e| Error::Usage(format!("quarb: {e}")))?;
+    // The invocation instant is always bound — from --now or one
+    // startup clock read; unbound, now() silently matches nothing.
+    let (secs, nanos) = match &opts.now {
+        Some(s) => quarb::temporal::parse_iso(s)
+            .map(|(secs, nanos, _)| (secs, nanos))
+            .ok_or_else(|| Error::Usage(format!("bad --now instant {s:?}")))?,
+        None => {
+            let ns = crate::facts::now_ns();
+            (
+                ns.div_euclid(1_000_000_000),
+                ns.rem_euclid(1_000_000_000) as u32,
+            )
+        }
+    };
+    let nowed = quarb::WithNow {
+        inner: &arbor,
+        secs,
+        nanos,
+    };
+    let result = quarb::run(expr, &nowed).map_err(|e| Error::Usage(format!("quarb: {e}")))?;
     match result {
         quarb::QueryResult::Nodes(nodes) => {
             if opts.json {

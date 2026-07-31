@@ -32,6 +32,9 @@ pub struct Opts {
     pub profile: Option<String>,
     pub json: bool,
     pub at: Option<String>,
+    /// Pin `now()` in Quarb queries to this ISO instant (`--now`);
+    /// unset, `cuj q` binds one startup clock read.
+    pub now: Option<String>,
     pub force: bool,
     pub stale: bool,
     pub ext_override: Option<String>,

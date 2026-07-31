@@ -109,6 +109,9 @@ fn typical_note() {
     assert!(content.ends_with("</html>\n"));
     // Tags live in the overlay, not the content.
     assert!(!content.contains("..work"));
+    // The summary reads through the HTML: the heading, not the
+    // <html><head> preamble.
+    assert_eq!(cuj::queries::summary_line(&reads, e), "Meeting Notes");
     let eff = reads.effective(e);
     assert!(eff.tags.contains("work"));
     assert!(eff.tags.contains("q1_2024"));
