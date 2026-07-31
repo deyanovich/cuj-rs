@@ -45,8 +45,9 @@ jobs:
             target: aarch64-apple-darwin
           - os: macos-latest
             target: x86_64-apple-darwin
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+          # No Windows wheel: cuj's storage substrate (apotheca's
+          # flock-based locking, via metatheca) is unix-only, the
+          # same limit the CLI has. Returns when metatheca does.
     steps:
       - uses: actions/checkout@v4
 
