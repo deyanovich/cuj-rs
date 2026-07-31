@@ -1,4 +1,4 @@
-# cuj · Python bindings
+# libcuj · cuj as a Python library
 
 [cuj](https://cuj.net) — *n. Clever Use of Jots* — is a
 plain-text PKM engine: one-line captures, inline
@@ -8,10 +8,13 @@ dates), a content-addressed fact store underneath, and
 importers for Evernote (`.enex`) and Obsidian vaults. Your
 notes stay plain text; the engine makes them answer questions.
 
-This package binds cuj into Python. The first release exposes
-the vault's query surface — the library twin of the `cuj q`
-command, running [Quarb](https://quarb.org) over the vault
-in-process:
+This package (`pip install libcuj`) binds cuj into Python as
+`import cuj` — the library only. The cuj command-line tool is
+its sibling distribution: `pip install cuj` (prebuilt binary)
+or `cargo install cuj` (from source). What the first release
+exposes is the vault's query surface — the library twin of the
+`cuj q` command, running [Quarb](https://quarb.org) over the
+vault in-process:
 
 ```python
 import cuj
@@ -49,9 +52,9 @@ cuj.q(expr,
 
 Errors raise `ValueError` with cuj's or the engine's message.
 
-The vault itself is made with the
-[`cuj` CLI](https://crates.io/crates/cuj) (`cargo install cuj`)
-— capture, import, label, promote; reading is the engine's job,
+The vault itself is made with the `cuj` CLI (`pip install
+cuj` or [`cargo install cuj`](https://crates.io/crates/cuj)) —
+capture, import, label, promote; reading is the engine's job,
 actions are the tool's. The data model and protocol are
 documented from [cuj.net](https://cuj.net); the query language
 in the [Quarb spec](https://quarb.org/spec/latest).

@@ -4,14 +4,23 @@
 
 ### Added
 
-- **cuj-py**: Python bindings (workspace member; PyPI dist
-  `cuj`, versioned to mirror the cuj release it binds, built
-  with maturin/PyO3, abi3 ≥3.8). First release exposes the
-  vault's query surface — `cuj.q(expr, config=, profile=, at=,
-  now=)`, the library twin of `cuj q`: node results as cuj
-  display strings, value results as typed Python values
-  (datetimes, timedeltas, dicts for records). Ships via the
-  `py/v*`-tag GitHub workflow (OIDC trusted publishing).
+- **PyPI `cuj`**: the CLI itself, prebuilt — a bin-bindings
+  wheel of this crate (the quarb-full mechanism, on the base
+  name: cuj is more likely wanted as a command than a
+  library). `pip install cuj` puts the complete binary on
+  PATH; unix wheels only (the substrate's flock locking).
+- **PyPI `libcuj`** (cuj-py workspace member, maturin/PyO3,
+  abi3 ≥3.8): the Python library, `import cuj`. First release
+  exposes the vault's query surface — `cuj.q(expr, config=,
+  profile=, at=, now=)`, the library twin of `cuj q`: node
+  results as cuj display strings, value results as typed
+  Python values (datetimes, timedeltas, dicts for records).
+  The two distributions install side by side: the CLI wheel
+  ships no Python module, the library wheel no script. (The
+  bindings briefly shipped as PyPI `cuj` 0.3.0 before the
+  naming ruling; that upload is superseded and yanked.)
+  Both publish from the `py/v*`-tag GitHub workflow (OIDC
+  trusted publishing).
 - `ClientConfig::load_from(path)`: load a config from an
   explicit path, bypassing `CUJ_CONFIG` and the default
   location — the door for library consumers.

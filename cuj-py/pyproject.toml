@@ -3,10 +3,10 @@ requires = ["maturin>=1.7,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "cuj"
+name = "libcuj"
 dynamic = ["version"]
 requires-python = ">=3.8"
-description = "cuj, the plain-text PKM, from Python — your notes as data: tags, hierarchical categories, typed edges, todos with real due dates, imported Evernote and Obsidian included; queryable via cuj's Quarb surface"
+description = "cuj, the plain-text PKM, as a Python library (import cuj) — your notes as data: tags, hierarchical categories, typed edges, todos with real due dates; the cuj CLI itself is `pip install cuj`"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-MIT", "LICENSE-APACHE"]

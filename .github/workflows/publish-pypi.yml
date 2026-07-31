@@ -1,18 +1,21 @@
-name: "Publish cuj-py to PyPI (dist: cuj)"
+name: "Publish to PyPI (dists: cuj + libcuj)"
 
-# Triggers on `py/v*` tag pushes to this GitHub mirror. Builds the full
-# wheel matrix (5 platforms + sdist) and publishes atomically to PyPI
-# using OIDC trusted publishing — no API token secret needed on the
-# GitHub side.
+# Triggers on `py/v*` tag pushes to this GitHub mirror. Builds both
+# distributions — `cuj` (the CLI binary, bin bindings from the root
+# crate) and `libcuj` (the bindings, import cuj, from cuj-py/) — for
+# the unix wheel matrix plus sdists, and publishes to PyPI using OIDC
+# trusted publishing; no API token secret on the GitHub side.
 #
 # One-time setup required before the first publish:
 #
-# 1. On PyPI (https://pypi.org/manage/project/cuj/settings/publishing/):
-#    Add a Trusted Publisher with:
+# 1. On PyPI, BOTH projects (cuj and libcuj) need a Trusted
+#    Publisher with:
 #      Owner:        deyanovich
 #      Repository:   cuj-rs
 #      Workflow:     publish-pypi.yml
 #      Environment:  pypi
+#    (The minted OIDC token covers every project whose publisher
+#    config matches, so one publish step uploads both.)
 #
 # 2. On GitHub (Settings → Environments on this repo):
 #    Create an environment named `pypi`. Optional protection rules
@@ -61,7 +64,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Build wheel
+      - name: Build libcuj wheel (bindings)
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
@@ -69,6 +72,18 @@ jobs:
             --release
             --strip
             --manifest-path cuj-py/Cargo.toml
+            --out dist
+          manylinux: auto
+          python-version: "3.12"
+
+      - name: Build cuj wheel (the CLI binary)
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: >-
+            --release
+            --strip
+            --manifest-path Cargo.toml
             --out dist
           manylinux: auto
           python-version: "3.12"
@@ -90,12 +105,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build sdist
+      - name: Build libcuj sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: >-
             --manifest-path cuj-py/Cargo.toml
+            --out dist
+
+      - name: Build cuj sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: >-
+            --manifest-path Cargo.toml
             --out dist
 
       - name: Upload sdist artifact
