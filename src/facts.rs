@@ -10,9 +10,13 @@ use serde_json::{Map, Value};
 
 use crate::error::{Error, Result};
 
-pub const PROTOCOL: &str = "0.5";
+pub const PROTOCOL: &str = "1.0-draft.5";
+/// The same revision's former spelling (the versioning scheme
+/// changed, nothing else): full surface, no gating; `migrate`
+/// normalizes the marker (SPEC §5.13).
+pub const PROTOCOL_ALIAS: &str = "0.5";
 /// The previous protocol line, still served read/write for its 0.4
-/// surface (SPEC §5.13); 0.5-only fact kinds require migration.
+/// surface (SPEC §5.13); later fact kinds require migration.
 pub const PROTOCOL_PREV: &str = "0.4";
 
 pub const K_JOT_INDEX: &str = "jot/index";
@@ -835,7 +839,7 @@ mod tests {
 
     #[test]
     fn old_shape_parsed_index_deserializes() {
-        // A pre-annotation jot/index body (protocol 0.5 before the
+        // A pre-annotation jot/index body (the 0.5-era index before the
         // edge-annotation extension): plain-string file refs and
         // resources, bare reference objects.
         let old = serde_json::json!({

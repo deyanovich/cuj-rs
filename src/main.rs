@@ -11,7 +11,7 @@ use cuj::facts;
 use cuj::read::{self, SimilarTarget};
 
 const USAGE: &str = "\
-cuj — note-jotting on Jot Syntax + metatheca (protocol 0.5)
+cuj — note-jotting on Jot Syntax + metatheca (protocol 1.0-draft.5)
 
 usage:
   cuj init [<profile>]                 create the vault / a profile

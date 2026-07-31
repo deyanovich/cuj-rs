@@ -16,7 +16,7 @@ requires-python = ">=3.8"
 description = "cuj — n. Clever Use of Jots — a plain-text PKM engine for your terminal, prebuilt: one-line captures, tags and hierarchical categories, todos with due dates, Evernote and Obsidian import, Quarb queries over the vault"
 readme = "README-pypi.md"
 license = "MIT OR Apache-2.0"
-license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
+license-files = ["cuj-py/LICENSE-MIT", "cuj-py/LICENSE-APACHE"]
 authors = [
     { name = "Bojan Đuričković" }
 ]

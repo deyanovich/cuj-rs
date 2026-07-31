@@ -1,6 +1,28 @@
 # Changelog
 
-## Unreleased (0.3.1)
+## Unreleased (0.3.2)
+
+### Changed
+
+- **Protocol versioning renamed: the cuj protocol is
+  `1.0-draft.5`** (formerly numbered 0.5 — the draft counter
+  continues that line; the quarb spec convention, adopted after
+  the crates.io page showed "protocol 0.5" beside the crate's
+  own 0.3.x and read as two competing versions). `cuj init`
+  writes the new marker; a `0.5` marker is the same revision's
+  former spelling — full surface, no gating — and `cuj migrate`
+  normalizes it in one committed fact. `0.4` handling is
+  unchanged. SPEC §5.13 updated alongside.
+- Crate description reworded so the protocol line arrives as a
+  trailing parenthetical, not a leading number.
+
+### Fixed
+
+- The libcuj sdist no longer fails on duplicate license files
+  (maturin auto-includes workspace-root licenses into member
+  sdists; the root pyproject now points at cuj-py's copies).
+
+## 0.3.1 — 2026-07-31
 
 ### Added
 

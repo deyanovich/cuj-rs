@@ -1,6 +1,7 @@
 # cuj-rs
 
-Rust implementation of the **cuj** protocol (0.5 line): a
+Rust implementation of the **cuj** protocol (1.0-draft.5
+line): a
 note-jotting and journaling CLI whose annotation language is
 [Jot Syntax](https://jotsyntax.org) and whose storage is a
 [metatheca](https://pantheca.org) vault with the taxopsis /
@@ -194,7 +195,7 @@ Maintenance:
 - `cuj export <dir>` — materialize the jot/attachment tree
   (combine with `--at` for a historical tree).
 - `cuj fsck` — substrate checks plus cuj-level invariants.
-- `cuj migrate` — move a 0.4 vault to protocol 0.5 (one
+- `cuj migrate` — move a 0.4 vault to the current protocol (one
   committed fact; 0.4 vaults are otherwise served as-is).
 - `cuj import ... <file.enex>... | <dir>` — see below.
 

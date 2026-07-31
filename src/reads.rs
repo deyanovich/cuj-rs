@@ -232,12 +232,17 @@ impl<'a> Reads<'a> {
 
     pub fn check_protocol(&self) -> Result<()> {
         match self.protocol.as_deref() {
-            // 0.5 is additive over 0.4: both are served (SPEC
-            // §5.13); 0.5-only writes gate on require_protocol().
-            Some(facts::PROTOCOL) | Some(facts::PROTOCOL_PREV) => Ok(()),
+            // The current revision — under either spelling — is
+            // additive over 0.4: both serve (SPEC §5.13);
+            // current-only writes gate on require_protocol().
+            Some(facts::PROTOCOL)
+            | Some(facts::PROTOCOL_ALIAS)
+            | Some(facts::PROTOCOL_PREV) => Ok(()),
             Some(p) => Err(Error::Unsupported(format!(
-                "vault protocol {p} (this build speaks {} and {})",
+                "vault protocol {p} (this build speaks {} — also \
+                 spelled {} — and {})",
                 facts::PROTOCOL,
+                facts::PROTOCOL_ALIAS,
                 facts::PROTOCOL_PREV
             ))),
             None => Err(Error::NotFound(
@@ -246,9 +251,13 @@ impl<'a> Reads<'a> {
         }
     }
 
-    /// Gate for operations writing 0.5-only fact kinds (SPEC §5.13).
+    /// Gate for operations writing fact kinds the current revision
+    /// added (SPEC §5.13).
     pub fn require_protocol(&self, what: &str) -> Result<()> {
-        if self.protocol.as_deref() == Some(facts::PROTOCOL) {
+        if matches!(
+            self.protocol.as_deref(),
+            Some(facts::PROTOCOL) | Some(facts::PROTOCOL_ALIAS)
+        ) {
             Ok(())
         } else {
             Err(Error::Unsupported(format!(

@@ -1,6 +1,7 @@
-//! Protocol 0.5 features end-to-end: migration gating, file
-//! spaces, the capture inbox, templates, saved queries, hybrid
-//! search, transclusion, agenda views, graph export, and the
+//! Current-protocol (1.0-draft.5) features end-to-end: migration
+//! gating, the former-spelling marker alias, file spaces, the
+//! capture inbox, templates, saved queries, hybrid search,
+//! transclusion, agenda views, graph export, and the
 //! notes-directory import binding.
 
 use std::collections::BTreeMap;
@@ -26,8 +27,8 @@ fn opts() -> Opts {
     Opts::default()
 }
 
-/// Rewind a fresh vault's protocol marker to 0.4.
-fn downgrade(app: &App) {
+/// Rewind a fresh vault's protocol marker to an older spelling.
+fn rewind_marker(app: &App, marker: &str) {
     let (root, _) = app
         .vault
         .current_facts(facts::K_CUJ_VAULT)
@@ -36,10 +37,39 @@ fn downgrade(app: &App) {
         .next()
         .unwrap();
     let mut body = serde_json::Map::new();
-    body.insert("protocol".into(), serde_json::Value::String("0.4".into()));
+    body.insert(
+        "protocol".into(),
+        serde_json::Value::String(marker.into()),
+    );
     app.vault
         .commit(&[metatheca::Fact::new(facts::K_CUJ_VAULT, root, body).unwrap()])
         .unwrap();
+}
+
+fn downgrade(app: &App) {
+    rewind_marker(app, "0.4");
+}
+
+#[test]
+fn former_spelling_is_the_same_revision() {
+    let tmp = tempfile::tempdir().unwrap();
+    let client = client_for(&tmp);
+    App::init(client.clone(), None).unwrap();
+    let app = App::open(client).unwrap();
+    rewind_marker(&app, "0.5");
+
+    // Full surface, no gating: a current-only write works.
+    app.create(&opts(), "alias vault jot ..tag").unwrap();
+    app.template_set(&opts(), "daily", "x").unwrap();
+
+    // migrate normalizes the marker in one committed fact.
+    let msg = app.migrate().unwrap();
+    assert!(msg.contains("renamed"), "{msg}");
+    assert!(msg.contains(facts::PROTOCOL), "{msg}");
+    let app = App::open(client_for(&tmp)).unwrap();
+    let reads = app.reads(&opts()).unwrap();
+    assert_eq!(reads.protocol.as_deref(), Some(facts::PROTOCOL));
+    assert!(app.migrate().unwrap().contains("already"));
 }
 
 #[test]

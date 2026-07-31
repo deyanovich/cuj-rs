@@ -1,4 +1,5 @@
-//! cuj — protocol 0.5 reference implementation (Rust).
+//! cuj — reference implementation of the cuj protocol
+//! (1.0-draft.5 line; Rust).
 //!
 //! A note-jotting and journaling CLI whose annotation language is
 //! Jot Syntax and whose storage is a metatheca vault with the

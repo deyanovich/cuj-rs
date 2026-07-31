@@ -1107,16 +1107,32 @@ impl App {
 
     // ── migrate (SPEC §10.37) ──────────────────────────────────────
 
-    /// Move a 0.4 vault to protocol 0.5: one committed fact, the
-    /// new marker on the root entry. Idempotent on a 0.5 vault.
+    /// Move a 0.4 vault to the current protocol: one committed
+    /// fact, the new marker on the root entry. A marker carrying
+    /// the current revision's former spelling (`0.5`) normalizes
+    /// — same revision, one fact. Idempotent on a current vault.
     pub fn migrate(&self) -> Result<String> {
         self.with_cas_retry(&Opts::default(), |reads| {
             if reads.protocol.as_deref() == Some(facts::PROTOCOL) {
                 return Ok(format!("already protocol {}", facts::PROTOCOL));
             }
+            if reads.protocol.as_deref() == Some(facts::PROTOCOL_ALIAS) {
+                let (root_entry, _) = self
+                    .vault
+                    .current_facts(facts::K_CUJ_VAULT)?
+                    .into_iter()
+                    .next()
+                    .ok_or_else(|| Error::NotFound("no cuj/vault fact".into()))?;
+                self.commit_pinned(reads, &[facts::vault_fact(root_entry)?])?;
+                return Ok(format!(
+                    "marker renamed to {} (same revision, formerly {})",
+                    facts::PROTOCOL,
+                    facts::PROTOCOL_ALIAS
+                ));
+            }
             if reads.profiles.contains_key("space") {
                 return Err(Error::Unsupported(
-                    "a profile is named \"space\" (reserved in 0.5); \
+                    "a profile is named \"space\" (reserved since 0.5); \
                      mv its jots to another profile first"
                         .into(),
                 ));

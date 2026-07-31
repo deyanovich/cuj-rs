@@ -1,9 +1,9 @@
 [package]
 name = "cuj"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 rust-version = "1.85"
-description = "cuj protocol 0.5 CLI — note-jotting on Jot Syntax + metatheca"
+description = "Note-jotting CLI on Jot Syntax + metatheca — implements the cuj protocol (1.0-draft.5)"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://gitlab.com/cujot/cuj-rs"
