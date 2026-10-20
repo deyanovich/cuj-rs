@@ -1,6 +1,6 @@
 [package]
 name = "cuj"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.85"
 description = "Note-jotting CLI on Jot Syntax + metatheca — implements the cuj protocol (1.0-draft.5)"
@@ -27,8 +27,8 @@ taxopsis = "0.1.1"
 logopsis = "0.1.0"
 semopsis = "0.1.0"
 zetetes = "0.1.0"
-quarb = "0.16"
-quarb-serve = "0.16"
+quarb = "0.39"
+quarb-serve = "0.39"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 toml = "0.8"

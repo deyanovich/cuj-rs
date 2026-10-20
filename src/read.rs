@@ -585,12 +585,14 @@ pub fn quarb_query(app: &App, opts: &Opts, expr: &str) -> Result<()> {
             )
         }
     };
-    let nowed = quarb::WithNow {
-        inner: &arbor,
-        secs,
-        nanos,
+    let run = quarb::Run {
+        now: Some((secs, nanos)),
+        ..quarb::Run::ambient()
     };
-    let result = quarb::run(expr, &nowed).map_err(|e| Error::Usage(format!("quarb: {e}")))?;
+    let result = quarb::Query::parse_with(expr, &quarb::Defs::default(), &arbor, &run)
+        .and_then(|q| q.run(&arbor, &run))
+        .map(|out| out.result)
+        .map_err(|e| Error::Usage(format!("quarb: {e}")))?;
     match result {
         quarb::QueryResult::Nodes(nodes) => {
             if opts.json {
@@ -612,11 +614,7 @@ pub fn quarb_query(app: &App, opts: &Opts, expr: &str) -> Result<()> {
                         quarb::Value::Int(n) => json!(n),
                         quarb::Value::Float(x) => json!(x),
                         quarb::Value::Str(s) => json!(s),
-                        quarb::Value::List(_)
-                        | quarb::Value::Record(_)
-                        | quarb::Value::Instant { .. }
-                        | quarb::Value::Duration { .. }
-                        | quarb::Value::Quantity { .. } => json!(v.to_string()),
+                        _ => json!(v.to_string()),
                     })
                     .collect();
                 json_out(&vals);

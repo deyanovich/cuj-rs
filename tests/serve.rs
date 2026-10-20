@@ -62,13 +62,13 @@ fn served_vault_equals_in_process() {
         // Typed instants survive the wire: the temporal predicate
         // filters server-side values client-side, and the display
         // is the instant's, not a stringly echo.
-        "//*<jot>[::;created > '2020-01-01'] @| count",
+        "//*<jot>[:::created > '2020-01-01'] @| count",
         "/default/2/review::due",
         // Byte quantities.
-        "//*<attachment>::;size",
+        "//*<attachment>:::size",
         // Edge properties over the link_property op.
-        "/default/2->*[$-::tags *= 'key']::;id",
-        "/default/2->*[$- = 'cites']::;id",
+        "/default/2->*[$-::tags *= 'key']:::jot-id",
+        "/default/2->*[$- = 'cites']:::jot-id",
         // Plain navigation parity.
         "/default/* @| count",
         "/default/1::tags",
@@ -81,5 +81,5 @@ fn served_vault_equals_in_process() {
     }
     // And the typed values are what they should be, not just equal.
     assert_eq!(values(&served, "/default/2/review::due"), ["2030-05-01"]);
-    assert_eq!(values(&served, "//*<attachment>::;size"), ["14 B"]);
+    assert_eq!(values(&served, "//*<attachment>:::size"), ["14_B"]);
 }

@@ -30,9 +30,9 @@
 //!   `::completed` as typed instants; bare `::` is the content
 //!   (a todo's raw form; a bookmark's fragment text, the same
 //!   slice `cuj show --N#name` prints);
-//! - metadata (`::;`): jots — `id`, `profile`, `ext`, `created`,
+//! - metadata (`:::`): jots — `jot-id`, `profile`, `ext`, `created`,
 //!   `modified` (typed instants), `attachments`, `n-links`,
-//!   `n-backlinks`; files — `space`, `path`, `ext`, `modified`,
+//!   `n-backlinks`; files — `space`, `rel-path`, `ext`, `modified`,
 //!   `n-links`, `n-backlinks`; attachments — `size` (a byte
 //!   quantity), `added`, `extracted`; category and tag nodes —
 //!   `n-jots`;
@@ -540,7 +540,7 @@ impl<'a> VaultArbor<'a> {
     }
 
     fn str_list(items: impl IntoIterator<Item = String>) -> Value {
-        Value::List(items.into_iter().map(Value::Str).collect())
+        Value::list(items.into_iter().map(Value::Str).collect())
     }
 
     /// An epoch-nanosecond stamp as a typed instant (UTC timeline;
@@ -550,6 +550,7 @@ impl<'a> VaultArbor<'a> {
             secs: ns.div_euclid(1_000_000_000),
             nanos: ns.rem_euclid(1_000_000_000) as u32,
             offset_min: None,
+            calendar: Default::default(),
         }
     }
 
@@ -561,6 +562,7 @@ impl<'a> VaultArbor<'a> {
                 secs,
                 nanos,
                 offset_min,
+                calendar: Default::default(),
             },
             None => Value::Str(s.to_string()),
         }
@@ -755,7 +757,7 @@ impl AstAdapter for VaultArbor<'_> {
             Node::Jot(entry) => {
                 let ident = self.reads.idents.get(entry)?;
                 match key {
-                    "id" => Some(Value::Int(ident.id)),
+                    "jot-id" => Some(Value::Int(ident.id)),
                     "profile" => Some(Value::Str(ident.profile.clone())),
                     "ext" => Some(Value::Str(ident.ext.clone())),
                     "created" => self
@@ -780,7 +782,7 @@ impl AstAdapter for VaultArbor<'_> {
                 let (space, rel) = self.reads.file_paths.get(entry)?;
                 match key {
                     "space" => Some(Value::Str(space.clone())),
-                    "path" => Some(Value::Str(rel.clone())),
+                    "rel-path" => Some(Value::Str(rel.clone())),
                     "ext" => Some(Value::Str(
                         rel.rsplit('.').next().unwrap_or_default().to_string(),
                     )),

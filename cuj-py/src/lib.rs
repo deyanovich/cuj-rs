@@ -7,7 +7,7 @@
 //! strings (`--default--12`, `///wiki/note.md`, `..tag`), value
 //! results as Python values (`int`, `float`, `datetime`,
 //! `timedelta`, dicts for records; quantities as their display
-//! string, `"204.808 kB"`).
+//! string, `"204.808_kB"`).
 //!
 //! Errors surface as Python `ValueError` with cuj's or the
 //! engine's message — no envelopes. The invocation instant for
@@ -23,7 +23,7 @@ use pyo3::types::{PyDict, PyList};
 use cuj::app::{App, Opts};
 use cuj::arbor::VaultArbor;
 use cuj::client::ClientConfig;
-use quarb::{QueryResult, Value, WithNow};
+use quarb::{QueryResult, Value};
 
 fn value_to_py(py: Python<'_>, v: &Value) -> PyResult<Py<PyAny>> {
     Ok(match v {
@@ -50,6 +50,7 @@ fn value_to_py(py: Python<'_>, v: &Value) -> PyResult<Py<PyAny>> {
             secs,
             nanos,
             offset_min,
+            ..
         } => {
             // datetime is microsecond-precision; nanos round down.
             // No source offset means the UTC timeline — the result
@@ -71,15 +72,20 @@ fn value_to_py(py: Python<'_>, v: &Value) -> PyResult<Py<PyAny>> {
             kwargs.set_item("microsecond", nanos / 1000)?;
             dt.call_method("replace", (), Some(&kwargs))?.unbind()
         }
-        Value::Duration { secs, nanos } => py
-            .import("datetime")?
-            .getattr("timedelta")?
-            .call1((0, *secs, nanos / 1000))?
-            .unbind(),
-        // Quantities keep their written face ("204.808 kB") — a
-        // typed Quantity class can come later without breaking
-        // this.
-        Value::Quantity { .. } => v.to_string().into_py_any(py)?,
+        // A duration is a quantity in a time unit (its durational
+        // reading); other quantities keep their written face
+        // ("204.808_kB") — a typed Quantity class can come later
+        // without breaking this. Periods, tables, nodes and foreign
+        // values ride as their display string likewise.
+        Value::Quantity { .. } => match v.durational_reading() {
+            Some((secs, nanos)) => py
+                .import("datetime")?
+                .getattr("timedelta")?
+                .call1((0, secs, nanos / 1000))?
+                .unbind(),
+            None => v.to_string().into_py_any(py)?,
+        },
+        _ => v.to_string().into_py_any(py)?,
     })
 }
 
@@ -132,12 +138,15 @@ fn q(
             )
         }
     };
-    let nowed = WithNow {
-        inner: &arbor,
-        secs,
-        nanos,
+    let run = quarb::Run {
+        now: Some((secs, nanos)),
+        ..quarb::Run::ambient()
     };
-    match quarb::run(expr, &nowed).map_err(|e| err(format!("quarb: {e}")))? {
+    let result = quarb::Query::parse_with(expr, &quarb::Defs::default(), &arbor, &run)
+        .and_then(|q| q.run(&arbor, &run))
+        .map(|out| out.result)
+        .map_err(|e| err(format!("quarb: {e}")))?;
+    match result {
         QueryResult::Nodes(nodes) => {
             let list = PyList::empty(py);
             for n in nodes {

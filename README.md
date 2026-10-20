@@ -117,9 +117,9 @@ Reading:
   traits (`//*<urgent>`), the effective index projects as
   properties (`[::todos *= budget]::summary`), bare `::` is
   the content (a bookmark's is its fragment), timestamps are
-  typed instants (`[::;modified > '2026-01-01']`, todo
+  typed instants (`[:::modified > '2026-01-01']`, todo
   `::due`), sizes byte quantities, `<orphan>` /
-  `::;n-backlinks` for link hygiene. Honors `--at`. Like
+  `:::n-backlinks` for link hygiene. Honors `--at`. Like
   `grep`, it reads the fact view directly and is never stale.
 - `cuj history --<id>` — the jot's fact history;
   `cuj log [-n N] [--since D] [--until D]` — vault states.

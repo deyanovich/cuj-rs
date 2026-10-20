@@ -103,7 +103,7 @@ fn predicates_projections_metadata() {
         ["--default--1"]
     );
     assert_eq!(
-        refs(&app, "/default/*[::summary *= chores]::summary"),
+        refs(&app, "/default/*[::summary *= 'chores']::summary"),
         ["chores"]
     );
     // Bare :: is the content.
@@ -112,12 +112,12 @@ fn predicates_projections_metadata() {
         ["urgent idea ..urgent ::work::alpha\n"]
     );
     // Adapter metadata, comparable as ISO strings and as ns ints.
-    assert_eq!(refs(&app, "/default/2::;profile"), ["default"]);
+    assert_eq!(refs(&app, "/default/2:::profile"), ["default"]);
     assert_eq!(
-        refs(&app, "//*<jot>[::;created >= \"2020-01-01\"] @| count"),
+        refs(&app, "//*<jot>[:::created >= \"2020-01-01\"] @| count"),
         ["4"]
     );
-    assert_eq!(refs(&app, "/work/1::;id"), ["1"]);
+    assert_eq!(refs(&app, "/work/1:::jot-id"), ["1"]);
 }
 
 #[test]
@@ -152,7 +152,7 @@ fn attachments_in_the_tree() {
         ["--default--1;;paper.txt"]
     );
     // Sizes are typed byte quantities.
-    assert_eq!(refs(&app, "//*<attachment>::;size"), ["14 B"]);
+    assert_eq!(refs(&app, "//*<attachment>:::size"), ["14_B"]);
 }
 
 /// Vault exercising the semantic surface: annotated references,
@@ -225,7 +225,7 @@ fn category_taxonomy_and_tag_subtree() {
     assert_eq!(refs(&app, "/default/1->cat"), ["::work::alpha"]);
     // The tag subtree enumerates and counts.
     assert_eq!(refs(&app, "/tags/core->tagged"), ["--default--1"]);
-    assert_eq!(refs(&app, "/tags/core::;n-jots"), ["1"]);
+    assert_eq!(refs(&app, "/tags/core:::n-jots"), ["1"]);
 }
 
 #[test]
@@ -251,12 +251,12 @@ fn typed_metadata_and_orphans() {
     // created/modified are typed instants: unquoted temporal
     // predicates work.
     assert_eq!(
-        refs(&app, "//*<jot>[::;created > '2020-01-01'] @| count"),
+        refs(&app, "//*<jot>[:::created > '2020-01-01'] @| count"),
         ["3"]
     );
     // Link counts exclude taxonomy edges.
-    assert_eq!(refs(&app, "/default/1::;n-backlinks"), ["2"]);
-    assert_eq!(refs(&app, "/default/2::;n-links"), ["2"]);
+    assert_eq!(refs(&app, "/default/1:::n-backlinks"), ["2"]);
+    assert_eq!(refs(&app, "/default/2:::n-links"), ["2"]);
     // 1 is referenced; 2 and 3 are orphans.
     let mut orphans = refs(&app, "//*<jot && orphan>");
     orphans.sort();
@@ -310,7 +310,7 @@ fn parallel_edges_traverse_and_props_pick_first_consistently() {
     app.create(&opts(), "see --1::cites::weak and --1::cites::strong..key")
         .unwrap();
     // Both parallel cites edges traverse and both count...
-    assert_eq!(refs(&app, "/default/2::;n-links"), ["2"]);
+    assert_eq!(refs(&app, "/default/2:::n-links"), ["2"]);
     assert!(!refs(&app, "/default/2->cites").is_empty());
     // ...but the (source, edge label, target) property slot is
     // single-valued: $- answers for the FIRST edge in parse
@@ -452,9 +452,9 @@ fn todo_items_done_trait_wordless_names_and_file_items() {
     app.todo_done(&opts(), &r, "1").unwrap();
     assert_eq!(refs(&app, "/default/1/*<todo && done>").len(), 1);
 
-    // Cat nodes count exact-level jots via ::;n-jots.
-    assert_eq!(refs(&app, "/cats/work/alpha::;n-jots"), ["1"]);
-    assert_eq!(refs(&app, "/cats/work::;n-jots"), ["0"]);
+    // Cat nodes count exact-level jots via :::n-jots.
+    assert_eq!(refs(&app, "/cats/work/alpha:::n-jots"), ["1"]);
+    assert_eq!(refs(&app, "/cats/work:::n-jots"), ["0"]);
 
     // File-jots: unreferenced observed files are <orphan>, and
     // their todo/bookmark item nodes exist with content answers.

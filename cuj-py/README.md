@@ -31,14 +31,14 @@ cuj.q("/default/3<-contradicts::summary")
 
 # Notes sharing a tag with note 14 but not linked to it.
 cuj.q("/default/14 . <-tagged->tagged"
-      "[::::id != (1)::::id][!--*[::::id = (1)::::id]]::summary")
+      "[:::jot-id != (1):::jot-id][!--*[:::jot-id = (1):::jot-id]]::summary")
 ```
 
 Node results return as cuj's own display strings
 (`--default--12`, `///wiki/note.md`, `..tag`); value results as
 typed Python values — `int`, `float`, tz-aware `datetime`,
 `timedelta`, dicts for records, quantities as their written
-face (`"204.808 kB"`).
+face (`"204.808_kB"`).
 
 Keyword arguments mirror the CLI's flags:
 

@@ -1,6 +1,33 @@
 # Changelog
 
-## Unreleased (0.3.2)
+## 0.4.0 — 2026-10-20
+
+### Changed
+
+- Track Quarb 0.39 (from 0.16): `cuj q`, `cuj quarb-serve`,
+  and the libcuj `q()` run against the engine that speaks spec
+  1.0-draft.157. The `AstAdapter` implementation is unchanged
+  but for two key names (below). **Breaking for `cuj q`
+  consumers** — the projection ladder now counts from the
+  core: `:name` / `:id` / `:index` / `:path` are the core
+  properties (formerly `:::name`), `::p` stays the data
+  property, `:::k` is adapter metadata (formerly `::;k`, and
+  `::::k` before that; the four-colon form refuses with a
+  pointer). Core names are reserved at the adapter level, so
+  two cuj keys collide and move: the jot number is
+  `:::jot-id` (formerly `::;id`; `:id` is now Quarb's own node
+  id) and a File node's space-relative path is `:::rel-path`
+  (formerly `::;path`; `:path` is the tree path). Quantities
+  display in their pasteable form (`14_B`, formerly `14 B`),
+  and a bare word in a predicate no longer reads as a string
+  — quote it (`[::summary *= 'chores']`). Value provenance
+  reads through `:%provenance` / `:@origin`.
+- The `--now` pin (and libcuj's `now=`) rides on the engine's
+  `Run` options; the `WithNow` adapter wrapper is gone from the
+  engine. Durations are time-unit quantities in the engine
+  now; libcuj still returns them as `timedelta`.
+
+## 0.3.2 — 2026-07-31
 
 ### Changed
 
