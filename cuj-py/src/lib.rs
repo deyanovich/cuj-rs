@@ -34,7 +34,7 @@ fn value_to_py(py: Python<'_>, v: &Value) -> PyResult<Py<PyAny>> {
         Value::Str(s) => s.into_py_any(py)?,
         Value::List(items) => {
             let list = PyList::empty(py);
-            for item in items {
+            for item in items.iter() {
                 list.append(value_to_py(py, item)?)?;
             }
             list.unbind().into()
